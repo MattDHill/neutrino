@@ -1145,6 +1145,17 @@ func (s *ChainService) UnbanPeer(addr string, parmanent bool) error {
 
 // IsBanned returns true if the peer is banned, and false otherwise.
 func (s *ChainService) IsBanned(addr string) bool {
+	host, _, err := net.SplitHostPort(addr)
+	if err != nil {
+		host = addr
+	}
+
+	// Bans are stored by IP network, so an onion address can never be
+	// banned.
+	if strings.HasSuffix(host, ".onion") {
+		return false
+	}
+
 	ipNet, err := banman.ParseIPNet(addr, nil)
 	if err != nil {
 		log.Errorf("Unable to parse IP network for peer %v: %v", addr,
